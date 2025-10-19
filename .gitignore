@@ -1,0 +1,14 @@
+# Ignore OS files
+.DS_Store
+Thumbs.db
+
+# VS Code
+.vscode/
+
+# Python caches
+__pycache__/
+*.py[cod]
+
+# Build artifacts
+dist/
+build/
