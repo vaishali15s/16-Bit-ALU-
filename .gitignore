@@ -12,3 +12,11 @@ __pycache__/
 # Build artifacts
 dist/
 build/
+
+# Simulation / waveform artifacts
+simulation_output.vcd
+*.vcd
+*.vvp
+*.exe
+simv
+*.log

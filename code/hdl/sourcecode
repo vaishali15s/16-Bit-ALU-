@@ -1,0 +1,110 @@
+//==============================================================
+// 16-bit Arithmetic Logic Unit (ALU) Project
+// Designed by: Vaishali Sharma
+// Description: Performs arithmetic, logic, and shift operations
+//==============================================================
+
+// ---------------------------
+// 1️⃣ ALU DESIGN MODULE
+// ---------------------------
+
+module alu_16bit (
+    input  [15:0] A,       // 16-bit input operand A
+    input  [15:0] B,       // 16-bit input operand B
+    input  [3:0]  sel,     // 4-bit control signal to select operation
+    output reg [15:0] Result, // 16-bit output result
+    output reg Carry,         // Carry flag for arithmetic operations
+    output reg Zero,          // Zero flag: 1 if result = 0
+    output reg Overflow       // Overflow flag for signed arithmetic
+);
+
+    // ALU operations are defined inside an always block
+    always @(*) begin
+        Carry = 0;        // Initialize Carry flag to 0 before every operation
+        Overflow = 0;     // Initialize Overflow flag to 0
+
+        case (sel)
+            4'b0000: {Carry, Result} = A + B;              // Addition
+            4'b0001: {Carry, Result} = A - B;              // Subtraction
+            4'b0010: Result = A & B;                       // Bitwise AND
+            4'b0011: Result = A | B;                       // Bitwise OR
+            4'b0100: Result = A ^ B;                       // Bitwise XOR
+            4'b0101: Result = ~A;                          // Bitwise NOT
+            4'b0110: Result = A << 1;                      // Logical Left Shift
+            4'b0111: Result = A >> 1;                      // Logical Right Shift
+            4'b1000: Result = A * B;                       // Multiplication
+            4'b1001: Result = (A == B) ? 16'h0001 : 16'h0000; // Equality check
+            4'b1010: Result = (A > B) ? 16'h0001 : 16'h0000;  // Greater than check
+            4'b1011: Result = (A < B) ? 16'h0001 : 16'h0000;  // Less than check
+            default: Result = 16'h0000;                    // Default: output zero
+        endcase
+
+        // Zero flag: set if the result is all zeros
+        Zero = (Result == 16'h0000);
+
+        // Overflow detection (for signed add/sub)
+        if (sel == 4'b0000 || sel == 4'b0001) begin
+            Overflow = (A[15] == B[15]) && (Result[15] != A[15]);
+        end
+    end
+
+endmodule
+
+
+
+// ---------------------------
+// 2️⃣ TESTBENCH MODULE
+// ---------------------------
+
+module alu_tb;
+
+    // Declare testbench signals
+    reg [15:0] A, B;          // Inputs to ALU
+    reg [3:0] sel;            // Operation selector
+    wire [15:0] Result;       // Output from ALU
+    wire Carry, Zero, Overflow;
+
+    // Instantiate ALU module inside testbench
+    alu_16bit uut (
+        .A(A), 
+        .B(B), 
+        .sel(sel), 
+        .Result(Result), 
+        .Carry(Carry), 
+        .Zero(Zero), 
+        .Overflow(Overflow)
+    );
+
+    // ----------------------------
+    // Initial block for simulation
+    // ----------------------------
+    initial begin
+        // Generate waveform file for GTKWave
+        $dumpfile("simulation_output.vcd");  // Create output file
+        $dumpvars(0, alu_tb);                // Dump all signals from alu_tb
+
+        // Display header for console output
+        $display("Time | sel | A | B | Result | Carry | Zero | Overflow");
+        $monitor("%4t | %b | %h | %h | %h | %b | %b | %b",
+                 $time, sel, A, B, Result, Carry, Zero, Overflow);
+
+        // Apply test inputs
+        A = 16'h000A; B = 16'h0003;  // Example: A=10, B=3
+
+        sel = 4'b0000; #10;  // Addition
+        sel = 4'b0001; #10;  // Subtraction
+        sel = 4'b0010; #10;  // AND
+        sel = 4'b0011; #10;  // OR
+        sel = 4'b0100; #10;  // XOR
+        sel = 4'b0101; #10;  // NOT
+        sel = 4'b0110; #10;  // Left Shift
+        sel = 4'b0111; #10;  // Right Shift
+        sel = 4'b1001; #10;  // Equal
+        sel = 4'b1010; #10;  // Greater
+        sel = 4'b1011; #10;  // Less
+
+        // End simulation
+        $finish;
+    end
+
+endmodule
