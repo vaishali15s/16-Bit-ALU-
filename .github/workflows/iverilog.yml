@@ -1,0 +1,25 @@
+name: Icarus Verilog CI
+
+on:
+  push:
+    branches: [ main ]
+  pull_request:
+    branches: [ main ]
+
+jobs:
+  sim:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Install Icarus Verilog
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y iverilog
+      - name: Compile
+        run: iverilog -o alu_sim code/hdl/alu16.v code/sim/alu16_tb.v
+      - name: Run
+        run: |
+          vvp alu_sim | tee sim.log
+          if ! grep -q "ALL TESTS PASSED" sim.log; then
+            echo "Tests failed"; exit 1
+          fi
